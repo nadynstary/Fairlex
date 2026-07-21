@@ -17,7 +17,13 @@ Document :
     )
     return response.text
 if __name__=="__main__":
-    sample_text="""
-    we may collect, use, and share your personal data with a third-party partners for marketing purposes. By using this server, you waive your right to a class action lawsuit.
-    """
-    print(summarizer(sample_text))
+    user_text= input("Paste the legal document text here: ")
+    print(summarizer(user_text))
+
+
+#=========================pdf2text=====================
+from pdf_extractor import extract_text_pdf
+if __name__=="__main__":
+    extracted_text= extract_text_pdf(r"C:\Users\nadeen\Downloads\terms-and-conditions-template-03.pdf")
+    summary= summarizer(extracted_text)
+    print(summary)
