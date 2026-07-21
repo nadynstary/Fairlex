@@ -1,0 +1,23 @@
+from google import genai
+from dotenv import load_dotenv
+import os
+load_dotenv()
+client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+
+def summarizer(text:str) -> str:
+    prompt=f"""you are fairlex, a legal document summarizer for non-technical users
+Summarize the following document in plain, simple language.PermissionError
+Highlight the key risks (data sharing, unusual clauses, rights being waived) that follow agreeing to this legal document, and give a hypothesis related to that risk for better understanding ).
+Document :
+{text}
+"""
+    response = client.models.generate_content(
+        model="gemini-3.5-flash",
+        contents=prompt
+    )
+    return response.text
+if __name__=="__main__":
+    sample_text="""
+    we may collect, use, and share your personal data with a third-party partners for marketing purposes. By using this server, you waive your right to a class action lawsuit.
+    """
+    print(summarizer(sample_text))
