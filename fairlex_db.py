@@ -54,6 +54,53 @@ class fairlexDB:
         self.users.update_one({"email": email}, update_doc, upsert=True)
         return self.users.find_one({"email": email},{"id":0})
 
+    #------------ summarizer logs branch -----------
+    def log_summary(
+            self,
+            email:str,
+            category:str,
+            original_text:str,
+            summary: str,
+            preview: int=200,
+    ) -> str:
+        """storing one summary log in the database and only a preview of the original text"""
+        if category not in SUMMARIZER_CATEGORIES:
+            raise ValueError(
+                f"Unknow category '{category}'. Must be one of {SUMMARIZER_CATEGORIES}"
+            )
+        
+        doc={
+            "email": email.strip().lower(),
+            "category": category,
+            "original_text_preview":original_text[:preview],
+            "summary": summary,
+            "timestamp": datetime.now(timezone.utc),
+
+        }
+        results=self.summarizer_logs.insert_one(doc)
+        return str(results.inserted_id)
+
+
+
+
+    
+    """get the user log history from the mongo db, using their email as a key. the limit is 20"""
+    def get_user_logs(self, email:str, limit:int=20)->List[Dict[str,Any]]:
+        cursor=(self.summarizer_logs.find({"email":email.strip().lower()},{"_id":0}).sort("timestamp",-1).limit(limit))
+        return list(cursor)
+    """get the user log history in a form of python dictionary, will have to dispaly
+    it for the user in the front end"""
+
+
+
+def get_db() -> fairlexDB:
+    try:
+        return fairlexDB()
+    except PyMongoError as e:
+        raise RuntimeError(f"Could not connect to MongoDB: {e}")
+
+
+    
 
 
    
