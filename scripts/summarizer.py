@@ -21,7 +21,7 @@ if __name__=="__main__":
     print(summarizer(user_text))
 
 
-#=========================pdf2text=====================
+#========================= Feature 2: pdf2text=====================
 from pdf_extractor import extract_text_pdf
 if __name__=="__main__":
     extracted_text= extract_text_pdf(r"C:\Users\nadeen\Downloads\terms-and-conditions-template-03.pdf")
