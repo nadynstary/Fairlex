@@ -1,0 +1,1 @@
+run chunking, embedding, vectordb then search 

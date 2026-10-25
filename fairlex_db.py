@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timezone, timedelta 
 from typing import Optional, List, Dict, Any
+from urllib import response
 
 
 #==========================--MONGO DB CONNECTION--=========================
@@ -34,10 +35,12 @@ class fairlexDB:
         self.users: Collection = self.db["users"]
         self.summarizer_logs: Collection = self.db["summarizer_logs"]
         self._ensure_indexes()
+        self.breach_results: Collection = self.db["breach_results"]
 
     def _ensure_indexes(self):
         self.users.create_index([("email", ASCENDING)], unique=True)
         self.summarizer_logs.create_index([("email", ASCENDING), ("timestamp", ASCENDING)])
+        self.breach_results.create_index([("email", ASCENDING), ("timestamp", ASCENDING)])
 
     # --------- Users Branch -----------
     #revisits and first visit (signup and signin)
@@ -53,7 +56,12 @@ class fairlexDB:
 
         self.users.update_one({"email": email}, update_doc, upsert=True)
         return self.users.find_one({"email": email},{"id":0})
-
+        
+    def get_user_logs(self, email:str, limit:int=20)->List[Dict[str,Any]]:
+        cursor=(self.summarizer_logs.find({"email":email.strip().lower()},{"_id":0}).sort("timestamp",-1).limit(limit))
+        return list(cursor)
+    """get the user log history in a form of python dictionary, will have to dispaly
+    it for the user in the front end"""
     #------------ summarizer logs branch -----------
     def log_summary(
             self,
@@ -80,16 +88,23 @@ class fairlexDB:
         results=self.summarizer_logs.insert_one(doc)
         return str(results.inserted_id)
 
-
-
-
+    def save_breach_results (self, email:str, breaches:List[Dict[str, Any]])-> str:
+        """SAVE the breach results in the database"""
+        doc={
+            "email": email.strip().lower(),
+            "breaches": breaches,
+            "checked_at": datetime.now(timezone.utc)
+        }
+        results = self.breach_results.insert_one(doc)
+        return str(results.inserted_id)
     
-    """get the user log history from the mongo db, using their email as a key. the limit is 20"""
-    def get_user_logs(self, email:str, limit:int=20)->List[Dict[str,Any]]:
-        cursor=(self.summarizer_logs.find({"email":email.strip().lower()},{"_id":0}).sort("timestamp",-1).limit(limit))
+    def get_breach_result(self, email:str, limit:int=20)->Optional[Dict[str,Any]]:
+        cursor=self.breach_results.find_one({"email":email.strip().lower()},{"_id":0},sort=[("checked_at",-1)])
         return list(cursor)
-    """get the user log history in a form of python dictionary, will have to dispaly
-    it for the user in the front end"""
+
+
+
+
 
 
 
