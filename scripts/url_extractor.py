@@ -46,6 +46,6 @@ def extract_text_url(url:str)->str:
  
     return text
 
-
+#tester
 if __name__ == "__main__":
     print(extract_text_url("https://code.claude.com/docs/en/legal-and-compliance")[:300])
